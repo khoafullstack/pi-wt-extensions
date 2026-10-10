@@ -3,6 +3,7 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { VERSION } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { formatClock } from "./session-info.ts";
+import { loadSettings } from "./settings.ts";
 
 const MAX_WIDTH = 100;
 const BRAND = "Work Together by Eztek";
@@ -80,25 +81,12 @@ export function registerWelcome(pi: ExtensionAPI): { isEnabled(): boolean } {
   }
 
   pi.on("session_start", (_event, ctx) => {
+    enabled = loadSettings(ctx.cwd).settings.welcome;
     if (enabled) start(ctx);
   });
   pi.on("session_info_changed", () => requestRender?.());
   pi.on("session_shutdown", () => {
     requestRender = undefined;
-  });
-
-  pi.registerCommand("wt-ui-welcome", {
-    description: "Bật/tắt header chào tùy chỉnh (on | off, bỏ trống để đảo trạng thái)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-      enabled = arg === "on" ? true : arg === "off" ? false : !enabled;
-
-      if (ctx.mode === "tui") {
-        if (enabled) start(ctx);
-        else ctx.ui.setHeader(undefined);
-      }
-      ctx.ui.notify(`wt-ui welcome: ${enabled ? "on" : "off"}`, "info");
-    },
   });
 
   return { isEnabled: () => enabled };

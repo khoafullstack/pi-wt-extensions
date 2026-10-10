@@ -25,12 +25,13 @@ pi-wt-ui/
    ├─ user-message.ts    # markdown transformer for user messages
    ├─ todo-panel.ts      # wt-ui-todo tool and panel widget
    ├─ ask-user.ts        # wt-ui-ask tool and dialog
+   ├─ settings.ts        # loads pi-wt-settings.json (global, then project) for the initial on/off state
    └─ session-info.ts    # shared helpers (turn count, time, token and duration formatting)
 ```
 
 ## Module responsibilities
 
-Each module exports one `registerX(pi)` function that returns a small handle (for example `{ isEnabled() }`). `index.ts` calls them all and reports their state from `/wt-ui`. A module owns its own enabled flag, its own `/wt-ui-*` command and its own cleanup.
+Each module exports one `registerX(pi)` function that returns a small handle (for example `{ isEnabled() }`). `index.ts` calls them all and reports their state from `/wt-ui`. A module owns its own enabled flag (read from the settings file) and its own cleanup.
 
 | Module | Pi API used | Notes |
 | --- | --- | --- |
@@ -47,13 +48,13 @@ Each module exports one `registerX(pi)` function that returns a small handle (fo
 ## Conventions
 
 - Names are prefixed with `wt-ui-`: commands, tools and widget keys.
-- Every feature has a `/wt-ui-*` toggle that takes `on`, `off` or nothing (flip). Turning it off restores Pi's default.
+- Features are switched on or off only through `settings.ts` (`~/.pi/agent/pi-wt-settings.json`, then `<cwd>/.pi/pi-wt-settings.json`), not by commands. Each module sets its flag from `loadSettings(ctx.cwd)` in its own `session_start` handler; a disabled feature simply does not install anything, so Pi's default stays. `index.ts` creates the global file with defaults when it is missing and never overwrites it. A new feature needs a key in `WtSettings` and `DEFAULT_SETTINGS`.
 - Anything that draws to the terminal runs only when `ctx.mode === "tui"`. Dialogs use `ctx.hasUI`. Tool and event logic stays independent of rendering.
 - Do not start timers, processes or listeners in the factory. Start them in `session_start` or in the command that needs them, and clean up in an idempotent `session_shutdown`.
 - Host packages (`pi-ai`, `pi-coding-agent`, `pi-tui`, `typebox`) are `peerDependencies` with `"*"`, never `dependencies`.
 - Confirm API signatures against `packages/coding-agent/src/core/extensions/types.ts` in https://github.com/earendil-works/pi before using them. Pi is not installed locally, so there are no type definitions to rely on.
 - Comments explain a hidden constraint, never what the code does.
-- Documentation is in English. Command descriptions and `ctx.ui.notify` messages in the code are currently written in Vietnamese; keep new ones consistent with the file you edit.
+- Everything in the repository is in English: documentation, comments, command descriptions and `ctx.ui.notify` messages.
 
 ## Rendering rules and pitfalls
 
@@ -85,8 +86,8 @@ Each module exports one `registerX(pi)` function that returns a small handle (fo
 ## Adding a feature
 
 1. Create `extensions/<feature>.ts` that exports `register<Feature>(pi)` and returns `{ isEnabled() }`.
-2. Register a `/wt-ui-<feature>` toggle in the same file. Guard drawing with `ctx.mode === "tui"` and restore Pi's default when turned off.
+2. Add a key to `WtSettings` and `DEFAULT_SETTINGS`, and read it in the module's `session_start` handler. Guard drawing with `ctx.mode === "tui"`.
 3. Call it from `extensions/index.ts` and add its state to the `/wt-ui` report.
-4. If it adds a tool, add the tool name to `CARD_TOOLS` and `LABELS` in `tool-cards.ts`, and handle it in `target()` and `summarize()`. Keep the tool's own `renderCall` and `renderResult` as the fallback for `/wt-ui-tools off`.
+4. If it adds a tool, add the tool name to `CARD_TOOLS` and `LABELS` in `tool-cards.ts`, and handle it in `target()` and `summarize()`. Keep the tool's own `renderCall` and `renderResult` as the fallback when `toolCards` is `false`.
 5. Add any new peer dependency to `package.json`.
 6. Update `README.md` (features, commands) and the layout and module tables in this file.

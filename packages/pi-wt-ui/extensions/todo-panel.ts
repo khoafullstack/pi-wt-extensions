@@ -2,6 +2,7 @@ import { StringEnum } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
+import { loadSettings } from "./settings.ts";
 
 const TOOL_NAME = "wt-ui-todo";
 const WIDGET_KEY = "wt-ui-todo";
@@ -115,7 +116,10 @@ export function registerTodoPanel(pi: ExtensionAPI): { isEnabled(): boolean } {
     paint(ctx);
   }
 
-  pi.on("session_start", (_event, ctx) => reconstruct(ctx));
+  pi.on("session_start", (_event, ctx) => {
+    enabled = loadSettings(ctx.cwd).settings.todos;
+    reconstruct(ctx);
+  });
   pi.on("session_tree", (_event, ctx) => reconstruct(ctx));
 
   pi.registerTool({
@@ -160,22 +164,6 @@ export function registerTodoPanel(pi: ExtensionAPI): { isEnabled(): boolean } {
       }
       const text = details.action === "clear" ? "cleared" : summarize(details.todos);
       return new Text(theme.fg("success", "✓ ") + theme.fg("muted", text), 0, 0);
-    },
-  });
-
-  pi.registerCommand("wt-ui-todos", {
-    description: "Bật/tắt todo panel (on | off | clear, bỏ trống để đảo trạng thái)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-      if (arg === "clear") {
-        todos = [];
-        paint(ctx);
-        ctx.ui.notify("wt-ui todos: cleared (chỉ xóa panel, không ghi vào phiên)", "info");
-        return;
-      }
-      enabled = arg === "on" ? true : arg === "off" ? false : !enabled;
-      paint(ctx);
-      ctx.ui.notify(`wt-ui todos: ${enabled ? "on" : "off"}`, "info");
     },
   });
 

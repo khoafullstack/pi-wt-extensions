@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { loadSettings } from "./settings.ts";
 
 const MARKER = "❯";
 // Non-breaking spaces: Markdown strips the leading ordinary spaces of a paragraph's continuation lines.
@@ -26,18 +27,13 @@ function decorate(markdown: string): string {
 export function registerUserMessage(pi: ExtensionAPI): { isEnabled(): boolean } {
   let enabled = true;
 
+  pi.on("session_start", (_event, ctx) => {
+    enabled = loadSettings(ctx.cwd).settings.userMessage;
+  });
+
   pi.registerMarkdownTransformer((markdown, context) => {
     if (!enabled || context.messageType !== "user") return markdown;
     return decorate(markdown);
-  });
-
-  pi.registerCommand("wt-ui-user", {
-    description: "Bật/tắt dấu ❯ ở user message (on | off, bỏ trống để đảo trạng thái; /reload để vẽ lại message cũ)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-      enabled = arg === "on" ? true : arg === "off" ? false : !enabled;
-      ctx.ui.notify(`wt-ui user message: ${enabled ? "on" : "off"} (message cũ vẽ lại sau /reload)`, "info");
-    },
   });
 
   return { isEnabled: () => enabled };

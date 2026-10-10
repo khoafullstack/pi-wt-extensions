@@ -2,6 +2,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { Component } from "@earendil-works/pi-tui";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { countTurns, formatClock, formatDuration, formatTokens } from "./session-info.ts";
+import { loadSettings } from "./settings.ts";
 
 const ENTRY_TYPE = "wt-ui-turn";
 
@@ -60,6 +61,10 @@ export function registerTurnSeparator(pi: ExtensionAPI): { isEnabled(): boolean 
   let enabled = true;
   let runStartedAt = 0;
 
+  pi.on("session_start", (_event, ctx) => {
+    enabled = loadSettings(ctx.cwd).settings.turnSeparator;
+  });
+
   pi.on("agent_start", () => {
     runStartedAt = Date.now();
   });
@@ -94,15 +99,6 @@ export function registerTurnSeparator(pi: ExtensionAPI): { isEnabled(): boolean 
       },
     };
     return component;
-  });
-
-  pi.registerCommand("wt-ui-turns", {
-    description: "Bật/tắt dải phân cách mỗi lượt chạy (on | off, bỏ trống để đảo trạng thái)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-      enabled = arg === "on" ? true : arg === "off" ? false : !enabled;
-      ctx.ui.notify(`wt-ui turn separator: ${enabled ? "on" : "off"} (dải cũ cũng ẩn/hiện khi vẽ lại)`, "info");
-    },
   });
 
   return { isEnabled: () => enabled };

@@ -1,5 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { loadSettings } from "./settings.ts";
 
 const BAR_CELLS = 10;
 
@@ -115,12 +116,8 @@ export function registerStatusBar(pi: ExtensionAPI): { isEnabled(): boolean } {
     });
   }
 
-  function remove(ctx: ExtensionContext): void {
-    if (ctx.mode !== "tui") return;
-    ctx.ui.setFooter(undefined);
-  }
-
   pi.on("session_start", async (_event, ctx) => {
+    enabled = loadSettings(ctx.cwd).settings.statusBar;
     if (enabled) install(ctx);
     await refreshStats(ctx);
   });
@@ -138,22 +135,6 @@ export function registerStatusBar(pi: ExtensionAPI): { isEnabled(): boolean } {
 
   pi.on("session_shutdown", () => {
     requestRender = undefined;
-  });
-
-  pi.registerCommand("wt-ui-statusbar", {
-    description: "Bật/tắt status bar tùy chỉnh (on | off, bỏ trống để đảo trạng thái)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-      enabled = arg === "on" ? true : arg === "off" ? false : !enabled;
-
-      if (enabled) {
-        install(ctx);
-        await refreshStats(ctx);
-      } else {
-        remove(ctx);
-      }
-      ctx.ui.notify(`wt-ui status bar: ${enabled ? "on" : "off"}`, "info");
-    },
   });
 
   return { isEnabled: () => enabled };

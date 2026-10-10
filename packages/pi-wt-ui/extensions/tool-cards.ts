@@ -1,6 +1,7 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { Component } from "@earendil-works/pi-tui";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { loadSettings } from "./settings.ts";
 import { captureSnapshot, summarizeWrite } from "./write-diff.ts";
 
 type Theme = ExtensionContext["ui"]["theme"];
@@ -303,6 +304,12 @@ export function registerToolCards(pi: ExtensionAPI): {
   let cardsEnabled = true;
   let diffEnabled = true;
 
+  pi.on("session_start", (_event, ctx) => {
+    const { settings } = loadSettings(ctx.cwd);
+    cardsEnabled = settings.toolCards;
+    diffEnabled = settings.diffPreview;
+  });
+
   pi.registerToolRenderer((toolName, next) => {
     if (!cardsEnabled || !CARD_TOOLS.has(toolName)) return next();
 
@@ -349,24 +356,6 @@ export function registerToolCards(pi: ExtensionAPI): {
   pi.on("tool_call", async (event, ctx) => {
     if (!cardsEnabled || event.toolName !== "write") return;
     await captureSnapshot(event.toolCallId, ctx.cwd, (event.input as { path?: unknown }).path);
-  });
-
-  pi.registerCommand("wt-ui-tools", {
-    description: "Bật/tắt thẻ tool gọn (on | off, bỏ trống để đảo trạng thái)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-      cardsEnabled = arg === "on" ? true : arg === "off" ? false : !cardsEnabled;
-      ctx.ui.notify(`wt-ui tool cards: ${cardsEnabled ? "on" : "off"} (áp dụng cho tool call mới)`, "info");
-    },
-  });
-
-  pi.registerCommand("wt-ui-diff", {
-    description: "Bật/tắt xem trước diff ở thẻ edit khi thu gọn (on | off, bỏ trống để đảo trạng thái)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-      diffEnabled = arg === "on" ? true : arg === "off" ? false : !diffEnabled;
-      ctx.ui.notify(`wt-ui diff preview: ${diffEnabled ? "on" : "off"} (áp dụng cho tool call mới)`, "info");
-    },
   });
 
   return {

@@ -1,6 +1,7 @@
 import { CustomEditor } from "@earendil-works/pi-coding-agent";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { loadSettings } from "./settings.ts";
 
 const WIDGET_KEY = "wt-ui-editor-hint";
 const LABEL = " wt ❯ ";
@@ -53,25 +54,9 @@ export function registerPromptEditor(pi: ExtensionAPI): { isEnabled(): boolean }
     );
   }
 
-  function uninstall(ctx: ExtensionContext): void {
-    if (ctx.mode !== "tui") return;
-    ctx.ui.setEditorComponent(undefined);
-    ctx.ui.setWidget(WIDGET_KEY, undefined);
-  }
-
   pi.on("session_start", (_event, ctx) => {
+    enabled = loadSettings(ctx.cwd).settings.editor;
     if (enabled) install(ctx);
-  });
-
-  pi.registerCommand("wt-ui-editor", {
-    description: "Bật/tắt prompt editor tùy chỉnh (on | off, bỏ trống để đảo trạng thái)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-      enabled = arg === "on" ? true : arg === "off" ? false : !enabled;
-      if (enabled) install(ctx);
-      else uninstall(ctx);
-      ctx.ui.notify(`wt-ui editor: ${enabled ? "on" : "off"}`, "info");
-    },
   });
 
   return { isEnabled: () => enabled };

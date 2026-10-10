@@ -2,7 +2,7 @@
 
 A UI customization package for the [Pi coding agent](https://pi.dev). It replaces the default terminal look with a compact, flat style and adds two agent tools: a live plan panel and an interactive question dialog.
 
-Every feature can be switched off with a `/wt-ui-*` command, and everything that draws to the terminal only runs in interactive (TUI) mode.
+Every feature can be switched off in a JSON settings file, and everything that draws to the terminal only runs in interactive (TUI) mode.
 
 ## Features
 
@@ -48,23 +48,49 @@ You can also start Pi with a theme for one run: `pi --use-theme wt-nord`.
 
 The `wt-*` themes use the terminal's default background for user messages, so they appear flat like the tool cards. Other themes keep their own user message background.
 
-## Commands
+## Settings
 
-All toggles accept `on` or `off`. Without an argument they flip the current state.
+Features are switched on or off with a JSON file. Two locations are read, and the later one wins:
+
+1. `~/.pi/agent/pi-wt-settings.json` (all projects)
+2. `<cwd>/.pi/pi-wt-settings.json` (this workspace)
+
+On first run the global file is created with every feature set to `true`. The workspace file is never created for you: add it only to override the global values in one project.
+
+```json
+{
+  "statusBar": true,
+  "toolCards": true,
+  "diffPreview": true,
+  "turnSeparator": true,
+  "editor": true,
+  "todos": true,
+  "ask": true,
+  "welcome": false,
+  "userMessage": true
+}
+```
+
+| Key | Feature |
+| --- | --- |
+| `statusBar` | Custom footer. |
+| `toolCards` | Compact tool cards. |
+| `diffPreview` | Diff preview on collapsed `edit` and `write` cards. Expanding still shows the diff. |
+| `turnSeparator` | Separator line after each agent run. |
+| `editor` | Prompt editor label and hint line. |
+| `todos` | Plan panel. |
+| `ask` | The `wt-ui-ask` tool. When `false` it is removed from the active tools. |
+| `welcome` | Welcome header. |
+| `userMessage` | `❯` marker on user messages. |
+
+Every key is optional and defaults to `true`. Unknown keys and non-boolean values are ignored with a warning. The files are read at session start, so run `/reload` after editing.
+
+## Commands
 
 | Command | Effect |
 | --- | --- |
-| `/wt-ui` | Show which features are on. |
-| `/wt-ui-statusbar [on\|off]` | Custom footer. Off restores Pi's default footer. |
-| `/wt-ui-tools [on\|off]` | Compact tool cards. Applies to new tool calls. |
-| `/wt-ui-diff [on\|off]` | Diff preview on collapsed `edit` and `write` cards. Expanding still shows the diff. |
-| `/wt-ui-turns [on\|off]` | Turn separator lines. |
-| `/wt-ui-welcome [on\|off]` | Welcome header. Off restores Pi's default header. |
-| `/wt-ui-editor [on\|off]` | Prompt editor label and hint line. |
-| `/wt-ui-user [on\|off]` | `❯` marker on user messages. Run `/reload` to redraw old messages. |
-| `/wt-ui-todos [on\|off\|clear]` | Plan panel. `clear` only hides the current plan, it does not write to the session. |
-| `/wt-ui-ask [on\|off\|demo]` | Enables or disables the `wt-ui-ask` tool. `demo` opens a sample dialog without a model. |
-
+| `/wt-ui` | Show the settings file paths and which features are on. |
+| `/wt-ui-ask-demo` | Open a sample ask dialog without a model. |
 ## Agent tools
 
 ### `wt-ui-todo`

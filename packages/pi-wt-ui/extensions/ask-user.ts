@@ -2,6 +2,7 @@ import { StringEnum } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme, Key, matchesKey, Text, visibleWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
+import { loadSettings } from "./settings.ts";
 
 const TOOL_NAME = "wt-ui-ask";
 const OTHER = "__other__";
@@ -421,6 +422,11 @@ const DEMO: Question[] = normalize([
 export function registerAskUser(pi: ExtensionAPI): { isEnabled(): boolean } {
   let enabled = true;
 
+  pi.on("session_start", (_event, ctx) => {
+    enabled = loadSettings(ctx.cwd).settings.ask;
+    if (!enabled) pi.setActiveTools(pi.getActiveTools().filter((name) => name !== TOOL_NAME));
+  });
+
   pi.registerTool({
     name: TOOL_NAME,
     label: "Ask",
@@ -459,23 +465,12 @@ export function registerAskUser(pi: ExtensionAPI): { isEnabled(): boolean } {
     },
   });
 
-  pi.registerCommand("wt-ui-ask", {
-    description: "Tool hỏi người dùng: on | off | demo (xem thử giao diện, không cần model)",
-    handler: async (args, ctx) => {
-      const arg = args.trim().toLowerCase();
-
-      if (arg === "demo") {
-        if (ctx.mode !== "tui") return ctx.ui.notify("demo cần chế độ interactive", "error");
-        const result = await runQuestionnaire(ctx, DEMO);
-        ctx.ui.notify(formatForModel(result), result.cancelled ? "warning" : "info");
-        return;
-      }
-
-      const next = arg === "on" ? true : arg === "off" ? false : !enabled;
-      const active = pi.getActiveTools().filter((name) => name !== TOOL_NAME);
-      pi.setActiveTools(next ? [...active, TOOL_NAME] : active);
-      enabled = next;
-      ctx.ui.notify(`wt-ui ask: ${enabled ? "on" : "off"}`, "info");
+  pi.registerCommand("wt-ui-ask-demo", {
+    description: "Preview the ask dialog without a model",
+    handler: async (_args, ctx) => {
+      if (ctx.mode !== "tui") return ctx.ui.notify("demo needs interactive mode", "error");
+      const result = await runQuestionnaire(ctx, DEMO);
+      ctx.ui.notify(formatForModel(result), result.cancelled ? "warning" : "info");
     },
   });
 
