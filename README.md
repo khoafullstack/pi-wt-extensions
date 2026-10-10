@@ -13,6 +13,8 @@ This repository is a pnpm workspace: each directory under `packages/` is an inde
 
 ## Install
 
+### From a local checkout
+
 Install a package permanently:
 
 ```sh
@@ -24,6 +26,39 @@ Or try it for a single run without installing:
 ```sh
 pi -e ./packages/pi-wt-ui
 ```
+
+### From GitHub
+
+Install this repository as a package directly from GitHub:
+
+```sh
+pi install git:github.com/khoafullstack/pi-wt-extensions
+# the HTTPS URL also works as a git source
+pi install https://github.com/khoafullstack/pi-wt-extensions
+```
+
+Or try it for a single run:
+
+```sh
+pi -e git:github.com/khoafullstack/pi-wt-extensions
+```
+
+Because this repository is a multi-package workspace, use the object form with a resource filter in `~/.pi/agent/settings.json` (or `.pi/settings.json` for project scope) to load only one package:
+
+```json
+{
+  "packages": [
+    {
+      "source": "git:github.com/khoafullstack/pi-wt-extensions",
+      "extensions": ["packages/pi-wt-ui/extensions/index.ts"]
+    }
+  ]
+}
+```
+
+Git sources are pinned to the ref you installed; update the checkout later with `pi update git:github.com/khoafullstack/pi-wt-extensions`.
+
+> Do not enable a local path and the `git:` source at the same time. Pi does not dedupe them and every extension registers twice.
 
 ## Layout
 
