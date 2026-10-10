@@ -1,5 +1,16 @@
 {
   "name": "pi-custom",
   "private": true,
-  "packageManager": "pnpm@12.10.1"
+  "packageManager": "pnpm@12.10.1",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./packages/pi-wt-ui/extensions/index.ts", "./packages/pi-wt-mode/extensions/index.ts"],
+    "themes": ["./packages/pi-wt-ui/themes"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  }
 }

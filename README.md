@@ -43,7 +43,7 @@ Or try it for a single run:
 pi -e git:github.com/khoafullstack/pi-wt-extensions
 ```
 
-Because this repository is a multi-package workspace, use the object form with a resource filter in `~/.pi/agent/settings.json` (or `.pi/settings.json` for project scope) to load only one package:
+The root `package.json` has a `pi` manifest that declares the extensions and themes of every package, so a plain install loads all of them, including the `wt-*` themes. Pi filters only narrow what a manifest declares; they cannot expose files it does not list. To load a single package, use the object form with a resource filter in `~/.pi/agent/settings.json` (or `.pi/settings.json` for project scope). Omitting `themes` keeps all themes:
 
 ```json
 {
