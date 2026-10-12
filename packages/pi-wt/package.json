@@ -1,7 +1,7 @@
 {
   "name": "pi-wt",
-  "version": "0.5.0",
-  "description": "Pi extension: Work Together UI, BTW side conversations and model advisor",
+  "version": "0.6.0",
+  "description": "Pi extension: Work Together UI, BTW side conversations, model advisor and plan mode",
   "type": "module",
   "scripts": {
     "test": "node --experimental-strip-types --test tests/*.test.ts"

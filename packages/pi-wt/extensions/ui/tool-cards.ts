@@ -46,13 +46,14 @@ interface Summary {
 
 const BUILT_IN = new Set(["read", "bash", "powershell", "edit", "write", "grep", "find", "ls"]);
 // Tools from this package get the same card, so they look like the built-ins instead of Pi's boxed default.
-const CARD_TOOLS = new Set([...BUILT_IN, "wt-ui-todo", "wt-ui-ask", "wt-advisor", "codemode"]);
+const CARD_TOOLS = new Set([...BUILT_IN, "wt-ui-todo", "wt-ui-ask", "wt-advisor", "wt-plan-off", "codemode"]);
 const MCP_RESOURCE_TOOLS = new Set(["list_mcp_resources", "list_mcp_resource_templates", "read_mcp_resource"]);
 const LABELS: Record<string, string> = {
   powershell: "pwsh",
   "wt-ui-todo": "plan",
   "wt-ui-ask": "ask",
   "wt-advisor": "advice",
+  "wt-plan-off": "mode",
   codemode: "code",
   list_mcp_resources: "res",
   list_mcp_resource_templates: "tmpl",
@@ -177,6 +178,8 @@ function target(toolName: string, args: any): string {
     }
     case "wt-advisor":
       return firstLine(String(args.question ?? "…"));
+    case "wt-plan-off":
+      return "plan mode off";
     case "codemode": {
       if (typeof args.code !== "string") return "…";
       // The `// @options:` line configures the run, so it says nothing about what the script does.
@@ -340,7 +343,7 @@ function summarizeMcpOutput(result: any, text: string, expanded: boolean): Summa
         .split("\n")
         .map((l) => (l.length > MCP_PREVIEW_LINE_CHARS ? `${l.slice(0, MCP_PREVIEW_LINE_CHARS - 1)}…` : l))
         .join("\n");
-  const body = previewBody(clipped, expanded ? EXPANDED_LINES : MCP_PREVIEW_LINES, "head", "dim").map((line) => ({
+  const body: BodyLine[] = previewBody(clipped, expanded ? EXPANDED_LINES : MCP_PREVIEW_LINES, "head", "dim").map((line) => ({
     ...line,
     wrap: true,
   }));
@@ -500,6 +503,8 @@ function summarize(
         body: previewBody(text, limit, "head", "toolOutput").map((line) => ({ ...line, wrap: true })),
       };
     }
+    case "wt-plan-off":
+      return { detail: "implementing", body: [] };
     case "list_mcp_resources":
     case "list_mcp_resource_templates":
       return summarizeMcpListing(toolName, result, text, opts.expanded);

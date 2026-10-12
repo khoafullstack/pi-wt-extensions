@@ -8,6 +8,7 @@ One Pi package combining Work Together's UI, BTW side conversations and advisor.
 - `extensions/settings.ts`: shared settings schema, paths, atomic writes and legacy migration; initialization runs before module session handlers.
 - `extensions/ui/`: UI modules and `registerUi()`; existing UI settings and names are preserved.
 - `extensions/mode/`: BTW/advisor modules and `registerMode()`; existing mode config and names are preserved.
+- `extensions/plan/`: plan mode and `registerPlan()`. `state.ts` (state, persistence, review-gate flags), `prompt.ts` (guidelines), `gate.ts` (gate entry renderer), `off-tool.ts` (`wt-plan-off`), `index.ts` (`/wt-plan`, shortcut, `tool_call` guard, events). See `docs/plan.md`.
 - `themes/`: four bundled dark themes.
 - `tests/`: foundation, mode features and combined package integration tests.
 - `docs/ui.md`, `docs/mode.md`: detailed user documentation.
@@ -17,6 +18,7 @@ One Pi package combining Work Together's UI, BTW side conversations and advisor.
 - Keep commands/tools named `wt-ui-*`, `wt-btw-*`, `wt-advisor*`, plus `/wt-ui` and `/wt-mode`. The user authorized merging packages without renaming these interfaces.
 - All features use `~/.pi/agent/pi-wt-settings.json` and optional project `.pi/pi-wt-settings.json`. UI flags stay top-level; mode sections are `btw` and `advisor`. Project mode sections and legacy project migration require trust. Legacy `wt-mode.json` migrates once and is archived as a backup.
 - BTW commands are `/wt-btw` (always main context), `/wt-btw-clear` and `/wt-btw-config` (model then thinking, saved together). Older context/new/model/thinking/inject/summarize commands have been removed by user request; no compatibility aliases.
+- Plan mode adds `/wt-plan`, the `wt-plan-off` tool (declared to the model only while plan mode is on) and a `plan.shortcut` setting (default `alt+m`). It blocks `write` and `edit` in code and restrains bash through the prompt only, by user decision. `wt-plan-off` is refused until a plan turn ended and the user typed a non-command message afterwards. The checklist step uses `wt-ui-todo` and is a prompt instruction, not a guard. `wt-plan-off` has a UI card (label `mode`).
 - Both the root and package manifests load only `extensions/index.ts`. Module entry points export named registration functions; they are not separate extensions.
 - UI tool cards also render every `mcp__*` tool and the MCP resource tools (`list_mcp_resources`, `list_mcp_resource_templates`, `read_mcp_resource`).
 - UI tool cards also render Pi's `codemode` tool (nested calls live, output preview, expandable script).
@@ -46,3 +48,11 @@ One Pi package combining Work Together's UI, BTW side conversations and advisor.
 - Configuration selects model then thinking and commits once after both steps. Cancellation/stale dialogs do not save. Inline model+thinking arguments support non-UI hosts; successful changes cancel pending work and retain completed exchanges.
 - Removed inject/summarize code and commands. Optional saved/non-TUI notes remain excluded from main context and summaries.
 - 45 tests pass, including configuration order/cancellation, stale dialog protection, context restoration and fresh context after clear. Strict TypeScript and syntax checks pass. Bundled CLI RPC discovers exactly 8 package commands and verifies combined BTW config saves preserve UI/advisor settings. Manual TUI verification remains pending.
+
+## Plan mode (2026-10-12)
+
+- Version 0.6.0 adds `extensions/plan/`. Plan mode state is stored as hidden `wt-plan-state` entries and rebuilt on `session_start` and `session_tree`; the review gate is a `wt-plan-gate` entry that never reaches the model.
+- Node strip-only mode rejects TypeScript parameter properties, so classes declare fields explicitly.
+- 9 plan tests pass (gate, confirmation rules, restore, guards, settings) and the combined registration test lists `/wt-plan` and `wt-plan-off`. Strict type check of all extensions and tests passes (`tsc --noEmit --strict --moduleResolution bundler --allowImportingTsExtensions --skipLibCheck`) after annotating `BodyLine[]` in `summarizeMcpOutput` and typing two test callbacks.
+- Manual TUI verification of the `Alt+M` listener, status badge and live-provider behavior remains pending. `Alt+M` has no match in the installed Pi 1.1.0 or pi-tui default bindings.
+- Plan mode feedback: the prompt editor border shows `PLAN` after `wt ❯` (no status-bar badge). Plan emits `wt-plan:changed` on `pi.events`; `ui/prompt-editor.ts` subscribes in `session_start` and unsubscribes on shutdown. 68 tests pass.

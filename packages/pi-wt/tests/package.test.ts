@@ -20,9 +20,9 @@ test("combined entry point registers UI and mode exactly once and renders adviso
     registerEntryRenderer: () => {}, registerMessageRenderer: () => {}, registerShortcut: () => {},
   } as unknown as ExtensionAPI;
   registerPackage(pi);
-  assert.deepEqual([...tools].sort(), ["wt-advisor", "wt-ui-ask", "wt-ui-todo"]);
+  assert.deepEqual([...tools].sort(), ["wt-advisor", "wt-plan-off", "wt-ui-ask", "wt-ui-todo"]);
   assert.deepEqual([...commands].sort(), ["wt-advisor", "wt-advisor-thinking", "wt-btw", "wt-btw-clear", "wt-btw-config",
-    "wt-mode", "wt-ui", "wt-ui-ask-demo"]);
+    "wt-mode", "wt-plan", "wt-ui", "wt-ui-ask-demo"]);
   assert.equal(markdownTransformers, 1);
   assert.equal(renderers.length, 1);
   const otherRenderer = {};

@@ -17,13 +17,14 @@ Pi loads TypeScript directly; no build step. Tested with Pi 1.1.0.
 | Status bar, tool cards/diffs, editor, welcome header, turn separators, plan and question tools, themes | [UI guide](./docs/ui.md) |
 | BTW side threads with main context, read-only tools and saved exchanges | [BTW and advisor guide](./docs/mode.md#btw) |
 | Model advisor, separate model/thinking settings and searchable model selectors | [Advisor guide](./docs/mode.md#advisor) |
+| Plan mode: read-only investigation with a review gate (`/wt-plan`, `Alt+M`) | [Plan mode guide](./docs/plan.md) |
 
 ## Configuration
 
 All features use one settings file: `~/.pi/agent/pi-wt-settings.json`, optionally overridden by project `.pi/pi-wt-settings.json`.
 
 - `/wt-ui` reports the top-level UI flags in that file.
-- `/wt-mode` reports its `btw` and `advisor` sections. These sections use project overrides only when the project is trusted.
+- `/wt-mode` reports its `btw`, `advisor` and `plan` sections. These sections use project overrides only when the project is trusted.
 - `/wt-btw` opens the context-aware side thread; `/wt-btw-clear` resets it; `/wt-btw-config` configures model then thinking. Advisor commands remain `/wt-advisor` and `/wt-advisor-thinking`.
 
 Missing global settings are created with UI and mode defaults at session start. Commands save model/thinking changes to this file while preserving UI flags. Reload after changing UI settings. See the [settings example](./docs/mode.md#configuration).

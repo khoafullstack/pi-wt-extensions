@@ -73,6 +73,7 @@ When migrating from `pi-wt-ui` and `pi-wt-mode`, replace their local package pat
       ├─ extensions/index.ts  # one entry point
       ├─ extensions/ui/       # terminal UI and tools
       ├─ extensions/mode/     # BTW and advisor
+      ├─ extensions/plan/     # plan mode
       ├─ themes/              # four dark themes
       ├─ tests/
       └─ docs/
@@ -83,7 +84,7 @@ When migrating from `pi-wt-ui` and `pi-wt-mode`, replace their local package pat
 - Pi SDK packages are peer dependencies. There is no build step.
 - Check the syntax of one file with `node --experimental-strip-types --check <file>.ts`.
 - One extension per package. Packages never import each other; cross-package communication goes through `pi.events`.
-- Existing names remain `wt-ui-*`, `wt-btw-*` and `wt-advisor*`, with `/wt-ui` and `/wt-mode` status commands.
+- Existing names remain `wt-ui-*`, `wt-btw-*` and `wt-advisor*`, with `/wt-ui` and `/wt-mode` status commands. Plan mode adds `/wt-plan` and `wt-plan-off`.
 - Run `pnpm --filter pi-wt test` after installing peers.
 
 See [AGENTS.md](./AGENTS.md) for the full conventions.

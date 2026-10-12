@@ -99,6 +99,6 @@ test("codemode card tolerates missing details and stays within the width", async
     details: { calls: [call("read", "ok", { args: "y".repeat(500) })] } };
   for (const width of [25, 60, 100]) {
     const text = await long.final(wide, {}, width);
-    assert.ok(text.split("\n").every((line) => visibleWidth(line) <= width), `width ${width}`);
+    assert.ok(text.split("\n").every((line: string) => visibleWidth(line) <= width), `width ${width}`);
   }
 });

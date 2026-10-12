@@ -89,7 +89,7 @@ test("reading a resource shows server, uri, output preview and stays within the 
   const long = { ...text("x".repeat(900)), details: { fullOutputPath: "C:/tmp/full.txt" } };
   for (const width of [25, 60, 100]) {
     const out = await read.body(long, {}, width);
-    assert.ok(out.split("\n").every((line) => visibleWidth(line) <= width), `width ${width}`);
+    assert.ok(out.split("\n").every((line: string) => visibleWidth(line) <= width), `width ${width}`);
   }
   assert.match(await read.body(long), /Full output: C:\/tmp\/full\.txt/);
   assert.match(read.header(), /\(truncated\)/);

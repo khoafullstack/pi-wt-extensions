@@ -21,10 +21,12 @@ export interface ModeConfig {
     timeoutMs: number;
     maxOutputTokens: number;
   };
+  plan: { shortcut: string };
 }
 export interface ConfigPatch {
   btw?: Partial<ModeConfig["btw"]>;
   advisor?: Partial<ModeConfig["advisor"]>;
+  plan?: Partial<ModeConfig["plan"]>;
 }
 export type ConfigContext = Pick<ExtensionContext, "cwd" | "isProjectTrusted">;
 const levels = new Set(["off", "minimal", "low", "medium", "high", "xhigh", "max"]);
@@ -51,7 +53,7 @@ export function loadSettings(cwd: string, home = homedir()): { settings: WtSetti
       const data: unknown = JSON.parse(readFileSync(path, "utf8").replace(/^\uFEFF/, ""));
       if (!record(data)) throw new Error("expected a JSON object");
       for (const [key, value] of Object.entries(data)) {
-        if (key === "btw" || key === "advisor") continue;
+        if (key === "btw" || key === "advisor" || key === "plan") continue;
         if (!Object.hasOwn(DEFAULT_SETTINGS, key)) errors.push(`${path}: unknown key "${key}"`);
         else if (typeof value !== "boolean") errors.push(`${path}: "${key}" must be true or false`);
         else settings[key as keyof WtSettings] = value;
@@ -67,6 +69,7 @@ export function defaultConfig(): ModeConfig {
   return {
     btw: { model: null, thinkingLevel: null, focusShortcut: "alt+b", fallbackShortcut: "ctrl+alt+b" },
     advisor: { model: null, thinkingLevel: null, maxCallsPerRun: 3, timeoutMs: 120_000, maxOutputTokens: 4096 },
+    plan: { shortcut: "alt+m" },
   };
 }
 
@@ -116,11 +119,16 @@ export function validateConfig(value: unknown): ConfigPatch {
     }
     patch.advisor = advisor;
   }
+  if (record(value.plan)) {
+    const plan: ConfigPatch["plan"] = {};
+    if (shortcut(value.plan.shortcut)) plan.shortcut = value.plan.shortcut;
+    patch.plan = plan;
+  }
   return patch;
 }
 
 function merge(base: ModeConfig, patch: ConfigPatch): ModeConfig {
-  return { btw: { ...base.btw, ...patch.btw }, advisor: { ...base.advisor, ...patch.advisor } };
+  return { btw: { ...base.btw, ...patch.btw }, advisor: { ...base.advisor, ...patch.advisor }, plan: { ...base.plan, ...patch.plan } };
 }
 async function readConfig(path: string): Promise<ConfigPatch> {
   try { return validateConfig(JSON.parse((await readFile(path, "utf8")).replace(/^\uFEFF/, ""))); }
@@ -217,7 +225,7 @@ export async function saveConfig(
     const previous: Record<string, unknown> = await readObject(target) ?? (scope === "global" ? { ...DEFAULT_SETTINGS } : {});
     const next = validateConfig(patch);
     const data: Record<string, unknown> = { ...previous };
-    for (const key of ["btw", "advisor"] as const) {
+    for (const key of ["btw", "advisor", "plan"] as const) {
       if (next[key] !== undefined) data[key] = { ...(record(previous[key]) ? previous[key] : {}), ...next[key] };
     }
     await writeAtomic(target, data);
