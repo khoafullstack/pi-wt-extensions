@@ -445,10 +445,34 @@ test("overlay renders streaming/thinking/activity within viewport bounds", () =>
   component.focused = true;
   for (const width of [25, 60, 100]) {
     const lines = component.render(width);
-    assert.ok(lines.length <= 24);
+    assert.ok(lines.length <= 27);
     assert.ok(lines.every(line => visibleWidth(line) <= width));
     assert.match(lines.join("\n"), /Reading/);
+    assert.match(lines[0], /^╭.*╮$/);
+    assert.match(lines.at(-1)!, /^╰.*╯$/);
   }
+  component.dispose();
+});
+
+test("overlay keeps a constant height and scrolls long conversations with position markers", () => {
+  initTheme("dark", false);
+  const h = host(), thread = new BtwSession(h.pi);
+  const component = new BtwOverlayComponent({ requestRender: () => {}, terminal: { rows: 30 } } as any,
+    { fg: (_color: string, text: string) => text } as any, thread, () => {}, () => {}, "ctrl+alt+b", () => {});
+  const short = component.render(60);
+  assert.doesNotMatch(short.at(-1)!, /↑/);
+  thread.liveText = Array.from({ length: 80 }, (_, i) => `line ${i}`).join("\n\n");
+  const bottom = component.render(60);
+  assert.equal(bottom.length, short.length);
+  assert.match(bottom.join("\n"), /line 79/);
+  assert.match(bottom.at(-1)!, /↓0/);
+  component.handleInput("\x1b[5~");
+  const scrolled = component.render(60);
+  assert.equal(scrolled.length, short.length);
+  assert.doesNotMatch(scrolled.join("\n"), /line 79/);
+  assert.match(scrolled.at(-1)!, /↓[1-9]/);
+  component.handleInput("\x1b[6~");
+  assert.match(component.render(60).join("\n"), /line 79/);
   component.dispose();
 });
 

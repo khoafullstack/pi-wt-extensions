@@ -4,9 +4,13 @@ import { Container, Editor, Markdown, Text, matchesKey, truncateToWidth, visible
 import { BtwSession } from "./session.ts";
 import { threadText } from "./state.ts";
 
+// Must stay equal to the overlay's maxHeight, otherwise Pi clips the bottom border.
+const OVERLAY_HEIGHT_RATIO = 0.9;
+
 export class BtwOverlayComponent extends Container implements Focusable {
   private editor: Editor;
   private scroll = 0;
+  private page = 10;
   private stopListening: () => void;
   private tui: TUI;
   private theme: Theme;
@@ -47,15 +51,15 @@ export class BtwOverlayComponent extends Container implements Focusable {
       if (this.thread.busy) void this.thread.abort().catch(error => { this.thread.error = String(error); this.tui.requestRender(); });
       else this.close();
     } else if (matchesKey(data, this.focusKey as Parameters<typeof matchesKey>[1])) this.toggleFocus();
-    else if (matchesKey(data, "pageUp")) this.scroll += 8;
-    else if (matchesKey(data, "pageDown")) this.scroll = Math.max(0, this.scroll - 8);
+    else if (matchesKey(data, "pageUp")) this.scroll += Math.max(1, this.page - 2);
+    else if (matchesKey(data, "pageDown")) this.scroll = Math.max(0, this.scroll - Math.max(1, this.page - 2));
     else this.editor.handleInput(data);
     this.tui.requestRender();
   }
   render(width: number): string[] {
     const inner = Math.max(1, width - 2);
-    const height = Math.max(5, Math.floor(this.tui.terminal.rows * 0.8));
-    const editorLines = this.editor.render(inner).slice(-Math.min(6, height - 3));
+    const height = Math.max(8, Math.floor(this.tui.terminal.rows * OVERLAY_HEIGHT_RATIO));
+    const editorLines = this.editor.render(inner).slice(-Math.min(6, height - 4));
     const history = threadText(this.thread.state);
     const question = this.thread.currentQuestion ? `\n\nYou: ${this.thread.currentQuestion}` : "";
     const streaming = this.thread.liveText ? `\n\nBTW (streaming):\n${this.thread.liveText}` : "";
@@ -63,21 +67,32 @@ export class BtwOverlayComponent extends Container implements Focusable {
     const text = history + question + thinking + streaming || "Ask a side question. This thread stays outside the main context.";
     const lines = new Markdown(text, 0, 0, getMarkdownTheme()).render(inner);
     const available = Math.max(1, height - editorLines.length - 4);
+    this.page = available;
     this.scroll = Math.min(this.scroll, Math.max(0, lines.length - available));
     const end = Math.max(0, lines.length - this.scroll);
     const body = lines.slice(Math.max(0, end - available), end);
+    const above = Math.max(0, end - available);
+    // Keep the overlay a constant height so it does not jump while a reply streams in.
+    while (body.length < available) body.push("");
     const status = this.thread.error || this.thread.activity || (this.thread.busy ? `${this.thread.pending} question(s) pending…` : "Ready");
     const header = ` BTW · ${this.thread.state.mode} · ${this.focused ? "focused" : "main editor"} `;
+    const border = (text: string) => this.theme.fg("border", text);
     const frame = (line: string) => {
       const clipped = truncateToWidth(line, inner, "");
-      return this.theme.fg("border", "│") + clipped + " ".repeat(Math.max(0, inner - visibleWidth(clipped))) + this.theme.fg("border", "│");
+      return border("│") + clipped + " ".repeat(Math.max(0, inner - visibleWidth(clipped))) + border("│");
     };
+    const title = truncateToWidth(this.theme.fg("accent", header), Math.max(0, inner - 2), "");
+    const top = border("╭─") + title + border("─".repeat(Math.max(0, inner - 1 - visibleWidth(title))) + "╮");
+    const position = above > 0 || this.scroll > 0 ? ` ↑${above} ↓${this.scroll} ` : "";
+    const marker = truncateToWidth(this.theme.fg("dim", position), Math.max(0, inner - 2), "");
+    const bottom = border("╰" + "─".repeat(Math.max(0, inner - 1 - visibleWidth(marker)))) + marker + border("─╯");
     return [
-      frame(this.theme.fg("accent", header)),
+      truncateToWidth(top, width, ""),
       ...body.map(frame),
       ...new Text(this.theme.fg(this.thread.error ? "error" : "muted", status), 0, 0).render(inner).slice(0, 1).map(frame),
       ...editorLines.map(frame),
       frame(this.theme.fg("dim", `Enter: send · Esc: ${this.thread.busy ? "abort" : "close"} · ${this.focusKey}: focus · PgUp/PgDn: scroll`)),
+      truncateToWidth(bottom, width, ""),
     ];
   }
   dispose(): void { this.stopListening(); }
@@ -124,7 +139,7 @@ export class BtwOverlay {
         });
       }, close, this.focusKey, () => this.toggle(ctx));
     }, {
-      overlay: true, overlayOptions: { width: "85%", maxHeight: "80%", anchor: "center" },
+      overlay: true, overlayOptions: { width: "85%", maxHeight: `${Math.round(OVERLAY_HEIGHT_RATIO * 100)}%`, anchor: "center" },
       onHandle: handle => {
         if (generation !== this.generation) { handle.hide(); finish?.(); return; }
         this.handle = handle;
