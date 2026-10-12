@@ -4,7 +4,7 @@ import test from "node:test";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import registerPackage from "../extensions/index.ts";
 
-test("combined entry point registers UI and mode exactly once and preserves advisor rendering", () => {
+test("combined entry point registers UI and mode exactly once and renders advisor as a card", () => {
   const commands = new Set<string>(), tools = new Set<string>();
   const renderers: any[] = [];
   let markdownTransformers = 0;
@@ -25,8 +25,9 @@ test("combined entry point registers UI and mode exactly once and preserves advi
     "wt-mode", "wt-ui", "wt-ui-ask-demo"]);
   assert.equal(markdownTransformers, 1);
   assert.equal(renderers.length, 1);
-  const advisorRenderer = {};
-  assert.equal(renderers[0]("wt-advisor", () => advisorRenderer), advisorRenderer);
+  const otherRenderer = {};
+  assert.equal(renderers[0]("some-mcp-tool", () => otherRenderer), otherRenderer);
+  assert.equal(renderers[0]("wt-advisor", () => undefined).renderShell, "self");
   assert.equal(renderers[0]("read", () => undefined).renderShell, "self");
 });
 

@@ -1,6 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { Component } from "@earendil-works/pi-tui";
-import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { truncateToWidth, visibleWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { loadSettings } from "./settings.ts";
 import { captureSnapshot, summarizeWrite } from "./write-diff.ts";
 
@@ -11,6 +11,7 @@ interface BodyLine {
   gutter?: string;
   text: string;
   tone: Tone;
+  wrap?: boolean;
 }
 
 interface Final {
@@ -31,14 +32,20 @@ interface Summary {
 
 const BUILT_IN = new Set(["read", "bash", "powershell", "edit", "write", "grep", "find", "ls"]);
 // Tools from this package get the same card, so they look like the built-ins instead of Pi's boxed default.
-const CARD_TOOLS = new Set([...BUILT_IN, "wt-ui-todo", "wt-ui-ask"]);
-const LABELS: Record<string, string> = { powershell: "pwsh", "wt-ui-todo": "plan", "wt-ui-ask": "ask" };
+const CARD_TOOLS = new Set([...BUILT_IN, "wt-ui-todo", "wt-ui-ask", "wt-advisor"]);
+const LABELS: Record<string, string> = {
+  powershell: "pwsh",
+  "wt-ui-todo": "plan",
+  "wt-ui-ask": "ask",
+  "wt-advisor": "advice",
+};
 const TODO_ICONS: Record<string, string> = { done: "✓", in_progress: "●", pending: "○" };
 const LABEL_WIDTH = 6;
 const EXPANDED_LINES = 30;
 const DIFF_PREVIEW_LINES = 12;
 const DIFF_EXPANDED_LINES = 80;
 const ERROR_LINES = 5;
+const ADVICE_PREVIEW_LINES = 6;
 
 function clean(text: string): string {
   return text.replace(/\r/g, "").replace(/\t/g, "  ");
@@ -96,6 +103,8 @@ function target(toolName: string, args: any): string {
       if (qs.length === 1) return firstLine(String(qs[0]?.prompt ?? "…"));
       return qs.map((q) => q?.label || q?.id || "?").join(", ") || "…";
     }
+    case "wt-advisor":
+      return firstLine(String(args.question ?? "…"));
     default:
       return args.path ?? ".";
   }
@@ -236,6 +245,22 @@ function summarize(
       });
       return { detail: `${answers.length} answered`, body };
     }
+    case "wt-advisor": {
+      const details = result.details as { model?: string; thinkingLevel?: string; shortened?: boolean } | undefined;
+      const detail = [
+        details?.model ?? "advisor",
+        details?.thinkingLevel ? `thinking ${details.thinkingLevel}` : "",
+        details?.shortened ? "shortened" : "",
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      // The advice is the point of the call, so a preview stays visible when collapsed.
+      const limit = opts.expanded ? EXPANDED_LINES : ADVICE_PREVIEW_LINES;
+      return {
+        detail,
+        body: previewBody(text, limit, "head", "toolOutput").map((line) => ({ ...line, wrap: true })),
+      };
+    }
     default:
       return { detail: firstLine(text), body: [] };
   }
@@ -255,9 +280,12 @@ class BodyComponent implements Component {
   invalidate(): void {}
 
   render(width: number): string[] {
-    return this.lines.map((l) => {
+    return this.lines.flatMap((l) => {
       const gutter = l.gutter ? `${this.theme.fg("dim", l.gutter)} ` : "";
-      return truncateToWidth(this.indent + gutter + this.theme.fg(l.tone, l.text), width);
+      if (!l.wrap) return [truncateToWidth(this.indent + gutter + this.theme.fg(l.tone, l.text), width)];
+      const prefix = this.indent + gutter;
+      const room = Math.max(1, width - visibleWidth(prefix));
+      return wrapTextWithAnsi(this.theme.fg(l.tone, l.text), room).map((part) => truncateToWidth(prefix + part, width));
     });
   }
 }

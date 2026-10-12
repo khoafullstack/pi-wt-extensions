@@ -118,7 +118,7 @@ Asks the user one to four questions in an interactive dialog.
 - The `❯` marker and the turn separator cannot be colored on their own. The marker uses the theme's user message text color.
 - The welcome header scrolls away with the transcript, because Pi attaches headers to the top of it.
 - Pi allows one markdown transformer per extension, which this package uses for the `❯` marker.
-- Tool cards cover Pi's built-in tools and the UI tools (`wt-ui-todo`, `wt-ui-ask`). Advisor, other custom tools and MCP tools keep their own renderers.
+- Tool cards cover Pi's built-in tools and the UI tools (`wt-ui-todo`, `wt-ui-ask`) and `wt-advisor`. Other custom tools and MCP tools keep their own renderers. With `toolCards` off, the advisor falls back to its own renderer.
 
 ## Development
 
