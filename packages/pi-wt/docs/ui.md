@@ -12,7 +12,7 @@ Every feature can be switched off in a JSON settings file, and everything that d
 | Compact tool cards | Each built-in tool call is one flat row: status icon, tool name, target, result summary and duration. Expand it to see the output. |
 | Diffs | `edit` and `write` show a colored diff with a separate line-number gutter. `write` snapshots the previous file so overwrites show only what changed. |
 | Turn separator | A short line after each agent run: turn number, time, duration, tool count, tokens and cost. |
-| Welcome header | A banner (`Work Together by Eztek`) and a session line (folder, session tag, start time) in place of Pi's default logo. |
+| Welcome header | A blue block-letter `EZTEK` logo (plain `EZtek` on narrow terminals), `Work Together` and `Pi Coding Agent v<version>` in white, and a session line (folder, session tag, start time) in place of Pi's default logo. |
 | Prompt editor | The input box gets a `wt ❯` label on its top border and a hint line underneath. All Pi key bindings keep working. |
 | User message marker | User messages start with `❯` and continuation lines are aligned under the text. Display only, the model never sees it. |
 | Plan panel | The `wt-ui-todo` tool lets the agent keep a step-by-step plan that is shown live above the editor. |

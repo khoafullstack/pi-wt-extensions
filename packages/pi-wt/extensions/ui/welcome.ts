@@ -6,7 +6,17 @@ import { formatClock } from "./session-info.ts";
 import { loadSettings } from "./settings.ts";
 
 const MAX_WIDTH = 100;
-const BRAND = "Work Together by Eztek";
+const TAGLINE = "Work Together";
+
+// Block letters spelling EZTEK; every row of a glyph has the same width so rows can be joined directly.
+const GLYPHS: Record<string, string[]> = {
+  E: ["███████╗", "██╔════╝", "█████╗  ", "██╔══╝  ", "███████╗", "╚══════╝"],
+  Z: ["███████╗", "╚══███╔╝", "  ███╔╝ ", " ███╔╝  ", "███████╗", "╚══════╝"],
+  T: ["████████╗", "╚══██╔══╝", "   ██║   ", "   ██║   ", "   ██║   ", "   ╚═╝   "],
+  K: ["██╗  ██╗", "██║ ██╔╝", "█████╔╝ ", "██╔═██╗ ", "██║  ██╗", "╚═╝  ╚═╝"],
+};
+const LOGO = Array.from({ length: 6 }, (_, row) => [..."EZTEK"].map((letter) => GLYPHS[letter][row]).join(""));
+const LOGO_WIDTH = Math.max(...LOGO.map(visibleWidth));
 
 interface SessionMeta {
   cwd: string;
@@ -41,14 +51,13 @@ export function registerWelcome(pi: ExtensionAPI): { isEnabled(): boolean } {
           if (w < 30 || !meta) return [];
 
           const dim = (t: string) => theme.fg("dim", t);
-          const accent = (t: string) => theme.fg("accent", t);
+          // `mdLink` is blue in every bundled theme and follows the active theme's link color elsewhere.
+          const blue = (t: string) => theme.fg("mdLink", t);
+          const white = (t: string) => theme.fg("text", t);
 
-          const inner = visibleWidth(BRAND) + 2;
-          const banner = [
-            accent(`╭${"─".repeat(inner)}╮`),
-            `${accent("│")} ${theme.bold(accent(BRAND))} ${accent("│")}  ${theme.bold(theme.fg("text", "Pi coding agent"))} ${dim(`v${VERSION}`)}`,
-            accent(`╰${"─".repeat(inner)}╯`),
-          ];
+          // Narrow terminals cannot fit the block letters, so they get the plain name instead.
+          const logo = w >= LOGO_WIDTH + 2 ? LOGO.map(blue) : [theme.bold(blue("EZtek"))];
+          const banner = [...logo, theme.bold(white(TAGLINE)), white(`Pi Coding Agent v${VERSION}`)];
 
           const name = pi.getSessionName();
           const info = [theme.fg("muted", shortenHome(meta.cwd))];
