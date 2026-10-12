@@ -242,11 +242,15 @@ function summarize(
 }
 
 class BodyComponent implements Component {
-  constructor(
-    private readonly lines: BodyLine[],
-    private readonly theme: Theme,
-    private readonly indent: string,
-  ) {}
+  private readonly lines: BodyLine[];
+  private readonly theme: Theme;
+  private readonly indent: string;
+
+  constructor(lines: BodyLine[], theme: Theme, indent: string) {
+    this.lines = lines;
+    this.theme = theme;
+    this.indent = indent;
+  }
 
   invalidate(): void {}
 
@@ -259,13 +263,19 @@ class BodyComponent implements Component {
 }
 
 class HeaderComponent implements Component {
-  constructor(
-    private readonly toolName: string,
-    private readonly args: any,
-    private readonly state: CardState,
-    private readonly theme: Theme,
-    private readonly pad: string,
-  ) {}
+  private readonly toolName: string;
+  private readonly args: any;
+  private readonly state: CardState;
+  private readonly theme: Theme;
+  private readonly pad: string;
+
+  constructor(toolName: string, args: any, state: CardState, theme: Theme, pad: string) {
+    this.toolName = toolName;
+    this.args = args;
+    this.state = state;
+    this.theme = theme;
+    this.pad = pad;
+  }
 
   invalidate(): void {}
 

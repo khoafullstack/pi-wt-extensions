@@ -4,8 +4,8 @@
   "packageManager": "pnpm@12.10.1",
   "keywords": ["pi-package"],
   "pi": {
-    "extensions": ["./packages/pi-wt-ui/extensions/index.ts", "./packages/pi-wt-mode/extensions/index.ts"],
-    "themes": ["./packages/pi-wt-ui/themes"]
+    "extensions": ["./packages/pi-wt/extensions/index.ts"],
+    "themes": ["./packages/pi-wt/themes"]
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

@@ -150,8 +150,7 @@ pi-custom/
 ├─ package.json            # private, packageManager: pnpm
 ├─ pnpm-workspace.yaml     # packages: ["packages/*"]
 └─ packages/
-   ├─ pi-wt-ui/            # package.json + extensions/index.ts
-   └─ pi-wt-mode/
+   └─ pi-wt/               # combined UI, BTW/advisor and themes; one extensions/index.ts
 ```
 
 Rules:
@@ -159,8 +158,8 @@ Rules:
 - Each `package.json` has the `pi-package` keyword and `"pi": { "extensions": ["./extensions/index.ts"] }`.
 - Host packages (`@earendil-works/pi-ai`, `pi-agent-core`, `pi-coding-agent`, `pi-tui`, `typebox`) go in `peerDependencies` with `"*"`, never in `dependencies`. Declare only the dependencies each package really uses.
 - No build step: Pi loads `.ts` through jiti.
-- Prefix command, tool, flag, and skill names per package (`wt-ui-*`, `wt-mode-*`) to avoid collisions.
+- Prefix command, tool, flag, and skill names per package to avoid collisions. The merged `pi-wt` preserves the user-approved `wt-ui-*`, `wt-btw-*`, `wt-advisor*`, `/wt-ui` and `/wt-mode` names.
 - Each package keeps its own version.
-- Install/try one package: `pi install ./packages/pi-wt-ui` or `pi -e ./packages/pi-wt-ui`. Git sources can filter with `"extensions": ["packages/pi-wt-ui/extensions/index.ts"]`.
+- Install/try one package: `pi install ./packages/pi-wt` or `pi -e ./packages/pi-wt`. Git sources can filter with `"extensions": ["packages/pi-wt/extensions/index.ts"]`.
 - Never enable a local path and a `git:` package pointing at the same content at once; Pi does not dedupe across them and everything registers twice.
-- Run a script in one package: `pnpm --filter pi-wt-ui <script>`.
+- Run a script in one package: `pnpm --filter pi-wt <script>`.

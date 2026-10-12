@@ -2,14 +2,13 @@
 
 Custom extension packages for the [Pi coding agent](https://pi.dev).
 
-This repository is a pnpm workspace: each directory under `packages/` is an independent, self-contained Pi package with its own version. Pi loads the TypeScript sources directly (jiti), so nothing needs to be built.
+This repository is a pnpm workspace containing `pi-wt`, one package combining the Work Together UI, themes, BTW conversations and advisor. Pi loads TypeScript directly (jiti), so nothing needs to be built.
 
 ## Packages
 
 | Package | Description |
 | --- | --- |
-| [`pi-wt-ui`](./packages/pi-wt-ui/README.md) | Interactive UI overhaul for the terminal: compact status bar, flat tool cards with diff preview, turn separators, welcome header, prompt editor label, user message marker, a live plan panel (`wt-ui-todo`) and a question dialog (`wt-ui-ask`), plus four dark themes: Catppuccin Mocha, Tokyo Night, Gruvbox Dark and Nord. |
-| [`pi-wt-mode`](./packages/pi-wt-mode) | Placeholder for the `wt` mode. Registers a `/wt-mode` command that confirms the extension is loaded. |
+| [`pi-wt`](./packages/pi-wt/README.md) | Terminal UI, compact tool cards/diffs, plan and question tools, four dark themes, context-aware BTW conversations and a model advisor with searchable model selectors. |
 
 ## Install
 
@@ -18,13 +17,13 @@ This repository is a pnpm workspace: each directory under `packages/` is an inde
 Install a package permanently:
 
 ```sh
-pi install ./packages/pi-wt-ui
+pi install ./packages/pi-wt
 ```
 
 Or try it for a single run without installing:
 
 ```sh
-pi -e ./packages/pi-wt-ui
+pi -e ./packages/pi-wt
 ```
 
 ### From GitHub
@@ -43,14 +42,14 @@ Or try it for a single run:
 pi -e git:github.com/khoafullstack/pi-wt-extensions
 ```
 
-The root `package.json` has a `pi` manifest that declares the extensions and themes of every package, so a plain install loads all of them, including the `wt-*` themes. Pi filters only narrow what a manifest declares; they cannot expose files it does not list. To load a single package, use the object form with a resource filter in `~/.pi/agent/settings.json` (or `.pi/settings.json` for project scope). Omitting `themes` keeps all themes:
+The root manifest declares one combined extension and all four `wt-*` themes. Existing resource filters in `~/.pi/agent/settings.json` or `.pi/settings.json` must use the merged entry point. Omitting `themes` keeps all themes:
 
 ```json
 {
   "packages": [
     {
       "source": "git:github.com/khoafullstack/pi-wt-extensions",
-      "extensions": ["packages/pi-wt-ui/extensions/index.ts"]
+      "extensions": ["packages/pi-wt/extensions/index.ts"]
     }
   ]
 }
@@ -60,6 +59,8 @@ Git sources are pinned to the ref you installed; update the checkout later with 
 
 > Do not enable a local path and the `git:` source at the same time. Pi does not dedupe them and every extension registers twice.
 
+When migrating from `pi-wt-ui` and `pi-wt-mode`, replace their local package paths with `packages/pi-wt` and remove old registrations. Commands are preserved. All features use `pi-wt-settings.json`; old `wt-mode.json` settings migrate automatically at session start, with the old file archived as a backup. See the [migration guide](./packages/pi-wt/README.md#migrating-from-the-separate-packages).
+
 ## Layout
 
 ```
@@ -68,15 +69,21 @@ Git sources are pinned to the ref you installed; update the checkout later with 
 ├─ package.json           # private root, packageManager: pnpm
 ├─ pnpm-workspace.yaml    # packages: ["packages/*"]
 └─ packages/
-   ├─ pi-wt-ui/           # UI customization package (extensions + themes)
-   └─ pi-wt-mode/         # wt mode package (placeholder)
+   └─ pi-wt/
+      ├─ extensions/index.ts  # one entry point
+      ├─ extensions/ui/       # terminal UI and tools
+      ├─ extensions/mode/     # BTW and advisor
+      ├─ themes/              # four dark themes
+      ├─ tests/
+      └─ docs/
 ```
 
 ## Development
 
-- Pi is a peer dependency and is not installed in this workspace, so there is no type check or build step.
+- Pi SDK packages are peer dependencies. There is no build step.
 - Check the syntax of one file with `node --experimental-strip-types --check <file>.ts`.
 - One extension per package. Packages never import each other; cross-package communication goes through `pi.events`.
-- Command, tool and flag names are prefixed per package (`wt-ui-*`, `wt-mode-*`).
+- Existing names remain `wt-ui-*`, `wt-btw-*` and `wt-advisor*`, with `/wt-ui` and `/wt-mode` status commands.
+- Run `pnpm --filter pi-wt test` after installing peers.
 
 See [AGENTS.md](./AGENTS.md) for the full conventions.

@@ -1,6 +1,6 @@
-# pi-wt-ui
+# pi-wt UI
 
-A UI customization package for the [Pi coding agent](https://pi.dev). It replaces the default terminal look with a compact, flat style and adds two agent tools: a live plan panel and an interactive question dialog.
+The UI modules of [pi-wt](../README.md) for the [Pi coding agent](https://pi.dev). They replace the default terminal look with a compact, flat style and add two agent tools: a live plan panel and an interactive question dialog.
 
 Every feature can be switched off in a JSON settings file, and everything that draws to the terminal only runs in interactive (TUI) mode.
 
@@ -24,13 +24,13 @@ Every feature can be switched off in a JSON settings file, and everything that d
 From this repository:
 
 ```sh
-pi install ./packages/pi-wt-ui
+pi install ./packages/pi-wt
 ```
 
 Or try it for a single run without installing:
 
 ```sh
-pi -e ./packages/pi-wt-ui
+pi -e ./packages/pi-wt
 ```
 
 Pi loads the TypeScript sources directly, so there is no build step.
@@ -55,7 +55,7 @@ Features are switched on or off with a JSON file. Two locations are read, and th
 1. `~/.pi/agent/pi-wt-settings.json` (all projects)
 2. `<cwd>/.pi/pi-wt-settings.json` (this workspace)
 
-On first run the global file is created with every feature set to `true`. The workspace file is never created for you: add it only to override the global values in one project.
+On first run the global file is created with UI flags and BTW/advisor defaults. The same file contains `btw` and `advisor` sections; see the [full settings example](./mode.md#configuration). A project file can be added for overrides, or created by migration from a trusted legacy `.pi/wt-mode.json`.
 
 ```json
 {
@@ -83,7 +83,7 @@ On first run the global file is created with every feature set to `true`. The wo
 | `welcome` | Welcome header. |
 | `userMessage` | `❯` marker on user messages. |
 
-Every key is optional and defaults to `true`. Unknown keys and non-boolean values are ignored with a warning. The files are read at session start, so run `/reload` after editing.
+Every UI key is optional and defaults to `true`. `btw` and `advisor` are valid mode sections. Other unknown keys and non-boolean UI values are ignored with a warning. UI flags are read at session start, so run `/reload` after editing.
 
 ## Commands
 
@@ -118,17 +118,17 @@ Asks the user one to four questions in an interactive dialog.
 - The `❯` marker and the turn separator cannot be colored on their own. The marker uses the theme's user message text color.
 - The welcome header scrolls away with the transcript, because Pi attaches headers to the top of it.
 - Pi allows one markdown transformer per extension, which this package uses for the `❯` marker.
-- Tool cards cover Pi's built-in tools and this package's own tools. Other custom and MCP tools keep their own renderers.
+- Tool cards cover Pi's built-in tools and the UI tools (`wt-ui-todo`, `wt-ui-ask`). Advisor, other custom tools and MCP tools keep their own renderers.
 
 ## Development
 
-Pi is a peer dependency and is not installed in this workspace, so there is no type check. To check syntax:
+Pi is a peer dependency. To check syntax from the package directory:
 
 ```sh
-node --experimental-strip-types --check extensions/<file>.ts
+node --experimental-strip-types --check extensions/ui/<file>.ts
 ```
 
-Run `/reload` inside Pi after changing a file. See [AGENTS.md](./AGENTS.md) for the code layout and conventions.
+Run `/reload` inside Pi after changing a file. See the [UI module guide](../extensions/ui/AGENTS.md) for code layout and conventions.
 
 ## License
 

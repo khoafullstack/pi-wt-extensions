@@ -1,8 +1,11 @@
 {
-  "name": "pi-wt-ui",
-  "version": "0.1.0",
-  "description": "Pi extension: wt UI",
+  "name": "pi-wt",
+  "version": "0.5.0",
+  "description": "Pi extension: Work Together UI, BTW side conversations and model advisor",
   "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/*.test.ts"
+  },
   "keywords": ["pi-package"],
   "pi": {
     "extensions": ["./extensions/index.ts"],
