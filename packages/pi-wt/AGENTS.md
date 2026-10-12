@@ -18,6 +18,8 @@ One Pi package combining Work Together's UI, BTW side conversations and advisor.
 - All features use `~/.pi/agent/pi-wt-settings.json` and optional project `.pi/pi-wt-settings.json`. UI flags stay top-level; mode sections are `btw` and `advisor`. Project mode sections and legacy project migration require trust. Legacy `wt-mode.json` migrates once and is archived as a backup.
 - BTW commands are `/wt-btw` (always main context), `/wt-btw-clear` and `/wt-btw-config` (model then thinking, saved together). Older context/new/model/thinking/inject/summarize commands have been removed by user request; no compatibility aliases.
 - Both the root and package manifests load only `extensions/index.ts`. Module entry points export named registration functions; they are not separate extensions.
+- UI tool cards also render every `mcp__*` tool and the MCP resource tools (`list_mcp_resources`, `list_mcp_resource_templates`, `read_mcp_resource`).
+- UI tool cards also render Pi's `codemode` tool (nested calls live, output preview, expandable script).
 - UI tool cards also render `wt-advisor` (label `advice`, model/thinking in the header, wrapped advice preview). The advisor's own `renderCall`/`renderResult` remain the fallback when `toolCards` is off. Only UI registers a markdown transformer.
 - Host SDK dependencies remain peers with `"*"`; TypeScript loads through jiti without a build.
 - Run `pnpm --filter pi-wt test` after installing peers. Validate syntax with `node --experimental-strip-types --check` and exercise the combined entry point when changing registration or lifecycle behavior.

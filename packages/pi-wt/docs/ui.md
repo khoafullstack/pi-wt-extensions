@@ -118,7 +118,7 @@ Asks the user one to four questions in an interactive dialog.
 - The `❯` marker and the turn separator cannot be colored on their own. The marker uses the theme's user message text color.
 - The welcome header scrolls away with the transcript, because Pi attaches headers to the top of it.
 - Pi allows one markdown transformer per extension, which this package uses for the `❯` marker.
-- Tool cards cover Pi's built-in tools and the UI tools (`wt-ui-todo`, `wt-ui-ask`) and `wt-advisor`. Other custom tools and MCP tools keep their own renderers. With `toolCards` off, the advisor falls back to its own renderer.
+- Tool cards cover Pi's built-in tools and the UI tools (`wt-ui-todo`, `wt-ui-ask`), `wt-advisor`, Pi's `codemode`, every MCP server tool (names starting with `mcp__`) and the MCP resource tools (`list_mcp_resources`, `list_mcp_resource_templates`, `read_mcp_resource`). MCP cards show `server/tool` plus its arguments (Context7 shows the library name, or the library id and query), a 3-line output preview that expands to 30 lines, and resource listings as counts with per-server errors. The `codemode` card lists the nested calls live while the script runs (last 8 collapsed, all expanded), then the script output; expanding also shows the highlighted script and nested call errors. Other custom tools and MCP tools keep their own renderers. With `toolCards` off, the advisor falls back to its own renderer.
 
 ## Development
 

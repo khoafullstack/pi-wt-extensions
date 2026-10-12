@@ -28,7 +28,7 @@ Each module exports one `registerX(pi)` function that returns a small handle (fo
 | Module | Pi API used | Notes |
 | --- | --- | --- |
 | `status-bar.ts` | `ctx.ui.setFooter`, `footerData` | Reads `footerData.getExtensionStatuses()` and renders other extensions' statuses at the right end. Without that, replacing the footer would hide them. |
-| `tool-cards.ts` | `pi.registerToolRenderer`, `tool_call` | `renderShell: "self"` removes the boxed background. The set of carded tools is the built-ins plus `wt-ui-todo`, `wt-ui-ask` and `wt-advisor`. Everything else goes through `next()`. |
+| `tool-cards.ts` | `pi.registerToolRenderer`, `tool_call` | `renderShell: "self"` removes the boxed background. The set of carded tools is the built-ins plus `wt-ui-todo`, `wt-ui-ask`, `wt-advisor`, Pi's `codemode`, the MCP resource tools and, by prefix, every `mcp__<server>__<tool>` tool (registered at runtime, so `isCardTool()` matches names instead of the static set). Codemode is the only card that renders partial results (nested call snapshots in `details.calls`, header text via `state.live`); it reads Pi-internal `details` defensively and strips the `Script completed|failed` header block with a regex. Everything else goes through `next()`. |
 | `write-diff.ts` | `tool_call` | Captures the old file content before `write` runs, keyed by tool call id. Diffs are line based with 2 lines of context. CRLF and LF are treated as equal. |
 | `turn-separator.ts` | `agent_end`, `pi.appendEntry`, `pi.registerEntryRenderer` | One entry per agent run, not per model turn. The entry is stored in the session but never sent to the model. |
 | `welcome.ts` | `ctx.ui.setHeader` | Banner and session line. Reads `pi.getSessionName()` at render time and redraws on `session_info_changed`. |
